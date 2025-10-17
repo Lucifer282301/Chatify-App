@@ -1,0 +1,21 @@
+{
+  "name": "chatify-app",
+  "version": "1.0.0",
+  "description": "**💬 Full-Stack Chat App**",
+  "main": "index.js",
+  "scripts": {
+    "build": "npm install --prefix server && npm install --prefix client && npm run build --prefix client",
+    "start": "npm run start --prefix server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Lucifer282301/Chatify-App.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Lucifer282301/Chatify-App/issues"
+  },
+  "homepage": "https://github.com/Lucifer282301/Chatify-App#readme"
+}
