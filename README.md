@@ -32,7 +32,10 @@ cd chat-app
 Create a .env file inside /backend and add:
 
 PORT=3000
-MONGO_URI=your_mongo_uri
+MONGO_URI=your_mongo_uri_here
+
+NODE_ENV=development
+
 JWT_SECRET=your_jwt_secret
 
 RESEND_API_KEY=your_resend_api_key
