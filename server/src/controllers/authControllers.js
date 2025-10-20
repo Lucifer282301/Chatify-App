@@ -1,6 +1,8 @@
+import { sendWelcomeEmail } from "../emails/emailHandlers.js";
+import { generateToken } from "../utils/utils.js";
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
-import { generateToken } from "../utils.js";
+import { ENV } from "../utils/env.js";
 
 export const signupController = async (req, res) => {
   const { fullName, email, password } = req.body;
@@ -46,8 +48,19 @@ export const signupController = async (req, res) => {
     });
 
     if (newUser) {
-      generateToken(newUser._id, res);
-      await newUser.save();
+      const savedUser = await newUser.save();
+      generateToken(savedUser._id, res);
+
+      try {
+        await sendWelcomeEmail({
+          email: savedUser.email,
+          name: savedUser.fullName,
+          clientURL: ENV.CLIENT_URL,
+        });
+      } catch (emailError) {
+        console.error("Failed to send welcome email:", emailError);
+      }
+
       return res.status(201).json({
         success: true,
         message: "User registered successfully!",
@@ -64,14 +77,9 @@ export const signupController = async (req, res) => {
     }
   } catch (error) {
     console.log("Error in signup controller: ", error);
-
     res.status(500).json({ message: "Internal server error" });
   }
 };
 
-export const loginController = async (req, res) => {
-  try {
-  } catch (error) {
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
+// eslint-disable-next-line no-unused-vars
+export const loginController = async (req, res) => {};
