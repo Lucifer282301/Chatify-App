@@ -51,11 +51,15 @@ export const signupController = async (req, res) => {
       const savedUser = await newUser.save();
       generateToken(savedUser._id, res);
 
-      await sendWelcomeEmail({
-        email: savedUser.email,
-        name: savedUser.fullName,
-        clientURL: ENV.CLIENT_URL,
-      });
+      try {
+        await sendWelcomeEmail({
+          email: savedUser.email,
+          name: savedUser.fullName,
+          clientURL: ENV.CLIENT_URL,
+        });
+      } catch (emailError) {
+        console.error("Failed to send welcome email:", emailError);
+      }
 
       return res.status(201).json({
         success: true,
