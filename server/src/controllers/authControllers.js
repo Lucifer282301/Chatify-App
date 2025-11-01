@@ -3,6 +3,7 @@ import { generateToken } from "../utils/utils.js";
 import User from "../models/User.js";
 import bcrypt from "bcryptjs";
 import { ENV } from "../utils/env.js";
+import cloudinary from "../utils/cloudinary.js";
 
 export const signupController = async (req, res) => {
   const { fullName, email, password } = req.body;
@@ -137,4 +138,36 @@ export const logoutController = (_, res) => {
     success: true,
     message: "User logged out successfully!",
   });
+};
+
+export const updateProfileController = async (req, res) => {
+  try {
+    const { profilePic } = req.body;
+    if (!profilePic) {
+      return res.status(400).json({
+        success: false,
+        message: "Profile picture is required!",
+      });
+    }
+
+    const userId = req.user._id;
+
+    const uploadResponse = await cloudinary.uploader.upload(profilePic);
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        profilePic: uploadResponse.secure_url,
+      },
+      { new: true }
+    );
+    return res.status(200).json({
+      success: true,
+      message: "Profile updated successfully!",
+      updatedUser,
+    });
+  } catch (error) {
+    console.log("Error in update profile controller: ", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
