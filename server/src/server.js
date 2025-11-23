@@ -1,23 +1,26 @@
 import express from "express";
-import dotenv from "dotenv";
+import cookieParser from "cookie-parser";
 import path from "path";
+import cors from "cors";
 
 import authRoutes from "./routes/authRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
-
-dotenv.config();
+import { connectDB } from "./config/db.js";
+import { ENV } from "./utils/env.js";
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = ENV.PORT || 5000;
 const __dirname = path.resolve();
 
-app.use(express.json());
+app.use(express.json()); // req.body
+app.use(cors({ origin: ENV.CLIENT_URL, credentials: true }));
+app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 
 // Make ready for deployment
-if (process.env.NODE_ENV === "production") {
+if (ENV.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "../client/dist")));
 
   app.get("*", (_, res) => {
@@ -26,5 +29,6 @@ if (process.env.NODE_ENV === "production") {
 }
 
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+  console.log(`Server is running on port: ${PORT}`);
+  connectDB();
 });
