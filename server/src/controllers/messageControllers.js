@@ -1,6 +1,7 @@
 import Message from "../models/Message.js";
 import User from "../models/User.js";
 import cloudinary from "../utils/cloudinary.js";
+import { getReceiverSocketId, io } from "../utils/socket.js";
 
 export const getAllContacts = async (req, res) => {
   try {
@@ -25,7 +26,7 @@ export const getMessagesByUserId = async (req, res) => {
         { senderId: myId, receiverId: userToChatId },
         { senderId: userToChatId, receiverId: myId },
       ],
-    }).sort({ createdAt: -1 });
+    });
     res.status(200).json(messages);
   } catch (error) {
     console.log("Error in getMessagesByUserId controller", error.message);
@@ -38,6 +39,19 @@ export const sendMessage = async (req, res) => {
     const { text, image } = req.body;
     const { id: receiverId } = req.params;
     const senderId = req.user._id;
+
+    if (!text && !image) {
+      return res.status(400).json({ message: "Text or image is required." });
+    }
+    if (senderId.equals(receiverId)) {
+      return res
+        .status(400)
+        .json({ message: "Cannot send messages to yourself." });
+    }
+    const receiverExists = await User.exists({ _id: receiverId });
+    if (!receiverExists) {
+      return res.status(404).json({ message: "Receiver not found." });
+    }
 
     let imageUrl;
     if (image) {
@@ -55,7 +69,10 @@ export const sendMessage = async (req, res) => {
 
     await newMessage.save();
 
-    // todo: send message in real-time if user is online - socket.io
+    const receiverSocketId = getReceiverSocketId(receiverId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("newMessage", newMessage);
+    }
 
     res.status(201).json(newMessage);
   } catch (error) {
